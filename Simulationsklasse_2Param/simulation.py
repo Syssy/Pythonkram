@@ -36,7 +36,6 @@ class Simulation():
             self.pd = pd
         self.version = v
 
-
     def simulate_step(self, location, mobile_state, number):
         """Simuliere einen Schritt für alle Teilchen.
         
@@ -65,7 +64,9 @@ class Simulation():
 
         # simuliert für ps und pm alle teilchen
     def simulate(self):
-        """Hauptschleife, Simuliere und teste, ob fertig."""
+        """ Simuliere und teste auf fertig.
+        simulate_each_timestep vs simulate_by_event
+        """
         startzeit = time.clock()
         arrival_counter = []
         time_needed = 0
@@ -81,8 +82,8 @@ class Simulation():
             logging.log(10, time_needed)
         #time.sleep(2)
         # Zeit soll hier 1/10s sein
-        logging.log(24, "Teil1 vorbei, zeit:%s, simdauer:%s", time_needed, time.clock()-startzeit)
-        logging.log(19, location[0:10])
+        logging.log(20, "Teil1 vorbei, zeit:%s, simdauer:%s", time_needed, time.clock()-startzeit)
+        logging.log(15, location[0:10])
         #Teil 2: Ab jetzt können Teilchen fertig sein, teste erst, dann x neue Runden
         while True:
             # d ist bitmaske aller aktuell angekommenen Teilchen
@@ -115,6 +116,7 @@ class Simulation():
         
         #print time.clock()-startzeit
         self.times = arrival_counter
+        self.recalculate_moments()
 
 
     def set_pd(self, pd, v = versionsnummer):
@@ -195,8 +197,6 @@ def main():
             with open("SimNeu_"+str(num)+".p", "wb") as datei:
             aSim = pickle.dump(aSim, datei)'''
     
-    
-
 if __name__ == "__main__":
     logging.basicConfig(level=20)
     main()

@@ -12,6 +12,8 @@ import simulation
 import math
 from matplotlib import colors, cm
 import argparse        
+import logging
+import simulation
         
 class Simulation(): #TODO
     anz = 1
@@ -105,8 +107,70 @@ def plot_widthmap(sim_array, nr_ps=10, nr_pm=10):
     cbar = fig.colorbar(cax)#, ticks=[np.amin(to_plot), 0, np.amax(to_plot)])*
             
    #
+def plot_widthandskew(sim_list, plotwidth = True, plotskew = False):
+    peak_data = []
+    sims = []
+    for sim in sim_list:
+        try:
+            pd = (sim.params, sim.pd[0], sim.pd[1], sim.pd[2], sim.skewness)
+            #willkürlich gewählt: loc <> xy, scale < z width < v...
+            if sim.pd[0][0] < 240 and sim.pd[0][1] < 60 and sim.pd[1] < 50 and sim.pd[0][0] > 0:
+                peak_data.append(pd)
+                sims.append(sim)
+                #print ("pd", pd)
+                #with open(filename, "r+") as data:
+                #   x = data.read()
+                  # print (data, x)
+                    #data.write(str(pd) + '\n')    
+        except AttributeError as err:
+            print (sim.params, err)
+            sim.recalculate_moments()
+            with open('v005/l' + str(sim.length) + "/n" + str(sim.number) + '/Sim_' + str(round(sim.params[0], 10)) + 
+                      '_' + str(round(sim.params[1], 10)) + ".p", "wb") as datei:
+                pickle.dump(sim, datei)
+            pd = (sim.params, sim.pd[0], sim.pd[1], sim.pd[2], sim.skewness)
+            #willkürlich gewählt: loc <> xy, scale < z width < v...
+            if sim.pd[0][0] < 240 and sim.pd[0][1] < 60 and sim.pd[1] < 50 and sim.pd[0][0] > 0:
+                peak_data.append(pd)
+                sims.append(sim)
+    logging.log(22, "plotte Groessenverhaeltnisse")
+    fig2 = plt.figure()
+    if plotwidth:
+        ax3 = fig2.add_subplot(1,1+plotskew,1)
+        ax3.set_title("Breite")
+    if plotskew:
+        ax4 = fig2.add_subplot(1,1+plotwidth,1+plotwidth)
+        ax4.set_title("Skew")
+    points = []
+       # print (peakdaten)
+    for pd in peak_data:
+           # print (pd)
+            (params, (loc, scale), breite, hoehe, skew) = pd
+            #print (loc, breite)
+            if plotwidth:
+                point = ax3.plot([loc], [breite], "ro")
+                #text = plt.text(s=params, x= loc,y= breite, fontsize = "xx-small")
+                #ax3.annotate(params, (loc, breite))
+                t = ax3.text(loc, breite, str(params[0])+'\n'+str(params[1]), size= "xx-small")
+            if plotskew:
+                anotherpoint = ax4.plot([loc], [skew], "bx")
+           # print("Params:", params, ":", point[0].get_xydata(), "Scale:", scale, "hoehe", hoehe)
+           # points.extend(point)        
+    plt.show()
+    #TODO: Eigentlich sollte hier kein return mehr sein, aber ist historisch so :/
+    return sims
     
-            
+    
+def plot_params_at_time(sim_list, t, epsilon = 0.1):
+    """plotte Parameterkombinationen zu Zeit t"""
+    for sim in sim_list:
+        if abs(sim.pd[0][0] - t) > epsilon:
+            logging.log(35, "Fehler, Abweichung zu groß, %s, bei sim %s", sim.pd[0], sim)
+        plt.plot(sim.params[0], sim.params[1], ".", markersize = sim.pd[1]*2)
+        logging.log(25, sim.pd[1])
+    plt.suptitle("Parameter für Zeit"+ str(t))
+    plt.show()    
+        
 
 # Eine einzelne Heatmap aus einem array plotten, (Aufruf von der Simulation)      
 def plot_heatmap(sim_array, squareroot_num_sim, moment):
@@ -546,9 +610,7 @@ def plot_single_histqq_ff(datei, num_bins=50):
         print ('skew', scipy.stats.skew(sim.times))
         
         sm.qqplot(np.array(sim.times), scipy.stats.invgauss, distargs=(mu,),  line = 'r')
-        
-        
-
+               
 def plot_qq(datei, qq_Plot, fit_qq_Plot, vergleich = scipy.stats.invgauss):
     with open(datei, 'rb') as csvfile:
         myreader = csv.reader(csvfile, delimiter = ";",quoting=csv.QUOTE_NONE)
