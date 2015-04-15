@@ -137,7 +137,7 @@ def plot_widthandskew(sim_list, plotwidth = True, plotskew = False):
     fig2 = plt.figure()
     if plotwidth:
         ax3 = fig2.add_subplot(1,1+plotskew,1)
-        ax3.set_title("Breite")
+        ax3.set_ylabel("Breite")
     if plotskew:
         ax4 = fig2.add_subplot(1,1+plotwidth,1+plotwidth)
         ax4.set_title("Skew")
@@ -163,12 +163,17 @@ def plot_widthandskew(sim_list, plotwidth = True, plotskew = False):
     
 def plot_params_at_time(sim_list, t, epsilon = 0.1):
     """plotte Parameterkombinationen zu Zeit t"""
+    ax = plt.axes()
+    ax.get_xaxis().get_major_formatter().set_useOffset(False)
+    plt.xlabel("ps")
+    plt.ylabel("pm")
     for sim in sim_list:
         if abs(sim.pd[0][0] - t) > epsilon:
             logging.log(35, "Fehler, Abweichung zu groß, %s, bei sim %s", sim.pd[0], sim)
-        plt.plot(sim.params[0], sim.params[1], ".", markersize = sim.pd[1]*2)
-        logging.log(25, sim.pd[1])
-    plt.suptitle("Parameter für Zeit"+ str(t))
+        ax.plot(sim.params[0], sim.params[1], "go", markersize = sim.pd[1]*2)
+        #text = ax.text((sim.params[0]-0.000005), sim.params[1]+0.02, str(round(sim.pd[1], 2)), rotation = -45)
+        logging.log(21, sim.pd[1])
+    plt.suptitle("Parameter für Zeit "+ str(t))
     plt.show()    
         
 
